@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Rocket, Sparkles, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 
 interface ComingSoonProps {
   children: React.ReactNode;
@@ -22,8 +22,11 @@ const ComingSoon = ({ children, feature = "This feature" }: ComingSoonProps) => 
           <DialogHeader className="text-center space-y-4">
             <div className="flex justify-center">
               <div className="relative">
-                <Rocket className="w-16 h-16 text-primary animate-float" />
-                <Sparkles className="w-6 h-6 text-accent absolute -top-2 -right-2 animate-glow-pulse" />
+                <img 
+                  src="/favicon.ico.png" 
+                  alt="WellTrack Logo" 
+                  className="w-16 h-16 object-contain animate-float"
+                />
               </div>
             </div>
             
