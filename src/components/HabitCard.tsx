@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import CircularProgress from "./CircularProgress";
 import StreakBadge from "./StreakBadge";
-import { Plus, Minus, Check } from "lucide-react";
+import { Plus, Minus, Check, TrendingUp, TrendingDown } from "lucide-react";
 
 interface Habit {
   id: number;
@@ -21,15 +22,46 @@ interface HabitCardProps {
 
 const HabitCard = ({ habit }: HabitCardProps) => {
   const [current, setCurrent] = useState(habit.current);
+  const { toast } = useToast();
   const percentage = Math.min((current / habit.target) * 100, 100);
   const isCompleted = current >= habit.target;
+  const wasCompleted = habit.current >= habit.target;
 
   const increment = () => {
-    setCurrent(prev => Math.min(prev + 0.5, habit.target + 2));
+    const newValue = Math.min(current + 0.5, habit.target + 2);
+    setCurrent(newValue);
+    
+    // Show different toasts based on progress
+    if (newValue >= habit.target && !wasCompleted) {
+      toast({
+        title: "🎉 Goal Completed!",
+        description: `Amazing work! You've completed your ${habit.name.toLowerCase()} goal for today.`,
+        className: "border-success/30 bg-success/10",
+      });
+    } else if (newValue >= habit.target * 0.8 && current < habit.target * 0.8) {
+      toast({
+        title: "🔥 Almost There!",
+        description: `You're 80% of the way to your ${habit.name.toLowerCase()} goal. Keep going!`,
+        className: "border-warning/30 bg-warning/10",
+      });
+    } else {
+      toast({
+        title: "📈 Progress Updated",
+        description: `${habit.name} increased to ${newValue}. Great progress!`,
+        className: "border-primary/30 bg-primary/10",
+      });
+    }
   };
 
   const decrement = () => {
-    setCurrent(prev => Math.max(prev - 0.5, 0));
+    const newValue = Math.max(current - 0.5, 0);
+    setCurrent(newValue);
+    
+    toast({
+      title: "📉 Progress Adjusted",
+      description: `${habit.name} updated to ${newValue}. No worries, tomorrow is a new day!`,
+      className: "border-muted/30 bg-muted/10",
+    });
   };
 
   const getColorClass = (color: string) => {

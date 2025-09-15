@@ -7,6 +7,7 @@ import HabitCard from "@/components/HabitCard";
 import WeeklyProgressGraph from "@/components/WeeklyProgressGraph";
 import GroupCard from "@/components/GroupCard";
 import StreakBadge from "@/components/StreakBadge";
+import ComingSoon from "@/components/ComingSoon";
 import { Trophy, Users, Target, TrendingUp, Zap, Moon, Droplets, Dumbbell, BookOpen } from "lucide-react";
 
 const Index = () => {
@@ -35,10 +36,12 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-4">
           <StreakBadge streak={12} />
-          <Button variant="outline" className="hover-glow">
-            <Trophy className="w-4 h-4 mr-2" />
-            View Achievements
-          </Button>
+          <ComingSoon feature="Achievement system">
+            <Button variant="outline" className="hover-glow">
+              <Trophy className="w-4 h-4 mr-2" />
+              View Achievements
+            </Button>
+          </ComingSoon>
         </div>
       </div>
 
@@ -131,10 +134,12 @@ const Index = () => {
         <TabsContent value="groups" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Your Groups</h2>
-            <Button className="bg-gradient-primary hover:scale-105 transition-transform">
-              <Users className="w-4 h-4 mr-2" />
-              Join New Group
-            </Button>
+            <ComingSoon feature="Group management system">
+              <Button className="bg-gradient-primary hover:scale-105 transition-transform">
+                <Users className="w-4 h-4 mr-2" />
+                Join New Group
+              </Button>
+            </ComingSoon>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {groups.map((group) => (

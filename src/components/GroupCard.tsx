@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import ComingSoon from "./ComingSoon";
 import { Users, MessageCircle, Trophy, Target } from "lucide-react";
 
 interface Group {
@@ -33,9 +34,11 @@ const GroupCard = ({ group }: GroupCardProps) => {
               </Badge>
             </CardDescription>
           </div>
-          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <MessageCircle className="w-4 h-4" />
-          </Button>
+          <ComingSoon feature="Group chat system">
+            <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+          </ComingSoon>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -101,19 +104,23 @@ const GroupCard = ({ group }: GroupCardProps) => {
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1 hover-glow"
-          >
-            View Details
-          </Button>
-          <Button 
-            size="sm" 
-            className="bg-gradient-primary hover:scale-105 transition-transform"
-          >
-            Join Chat
-          </Button>
+          <ComingSoon feature="Group details page">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 hover-glow"
+            >
+              View Details
+            </Button>
+          </ComingSoon>
+          <ComingSoon feature="Group chat system">
+            <Button 
+              size="sm" 
+              className="bg-gradient-primary hover:scale-105 transition-transform"
+            >
+              Join Chat
+            </Button>
+          </ComingSoon>
         </div>
       </CardContent>
     </Card>
