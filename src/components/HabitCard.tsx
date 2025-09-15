@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import CircularProgress from "./CircularProgress";
 import StreakBadge from "./StreakBadge";
 import { Plus, Minus, Check } from "lucide-react";
 
@@ -42,16 +42,6 @@ const HabitCard = ({ habit }: HabitCardProps) => {
     }
   };
 
-  const getProgressClass = (color: string) => {
-    switch (color) {
-      case 'primary': return '[&>div]:bg-primary [&>div]:shadow-[0_0_10px_hsl(180_100%_50%_/_0.4)]';
-      case 'accent': return '[&>div]:bg-accent [&>div]:shadow-[0_0_10px_hsl(270_100%_70%_/_0.4)]';
-      case 'success': return '[&>div]:bg-success [&>div]:shadow-[0_0_10px_hsl(120_100%_50%_/_0.4)]';
-      case 'warning': return '[&>div]:bg-warning [&>div]:shadow-[0_0_10px_hsl(45_100%_50%_/_0.4)]';
-      default: return '[&>div]:bg-primary [&>div]:shadow-[0_0_10px_hsl(180_100%_50%_/_0.4)]';
-    }
-  };
-
   return (
     <Card className={`card-futuristic transition-all duration-300 ${isCompleted ? 'animate-glow-pulse' : ''}`}>
       <CardHeader className="pb-3">
@@ -65,35 +55,40 @@ const HabitCard = ({ habit }: HabitCardProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current vs Target Display */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center gap-8">
           <div className="text-center">
             <p className="text-2xl font-bold font-mono">{current}</p>
             <p className="text-xs text-muted-foreground">Current</p>
           </div>
-          <div className="text-center text-muted-foreground">
-            <p className="text-sm">/</p>
-          </div>
+          
+          {/* Circular Progress */}
+          <CircularProgress 
+            value={percentage} 
+            size={100} 
+            strokeWidth={8}
+            color={habit.color}
+            showValue={true}
+            className="animate-slide-up"
+          />
+          
           <div className="text-center">
             <p className="text-2xl font-bold font-mono text-muted-foreground">{habit.target}</p>
             <p className="text-xs text-muted-foreground">Target</p>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <Progress 
-            value={percentage} 
-            className={`h-3 bg-muted ${getProgressClass(habit.color)}`}
-          />
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{percentage.toFixed(0)}% Complete</span>
-            {isCompleted && (
-              <span className="flex items-center gap-1 text-success">
-                <Check className="w-4 h-4" />
-                Goal reached!
-              </span>
-            )}
-          </div>
+        {/* Status Message */}
+        <div className="text-center">
+          {isCompleted ? (
+            <div className="flex items-center justify-center gap-2 text-success">
+              <Check className="w-4 h-4" />
+              <span className="font-medium">Goal completed! 🎉</span>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {(habit.target - current).toFixed(1)} more to reach your goal
+            </p>
+          )}
         </div>
 
         {/* Control Buttons */}

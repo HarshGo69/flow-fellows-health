@@ -2,10 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HabitCard from "@/components/HabitCard";
-import ProgressChart from "@/components/ProgressChart";
+import WeeklyProgressGraph from "@/components/WeeklyProgressGraph";
 import GroupCard from "@/components/GroupCard";
 import StreakBadge from "@/components/StreakBadge";
 import { Trophy, Users, Target, TrendingUp, Zap, Moon, Droplets, Dumbbell, BookOpen } from "lucide-react";
@@ -124,40 +123,8 @@ const Index = () => {
           </div>
         </TabsContent>
 
-        {/* Progress Tab */}
         <TabsContent value="progress" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ProgressChart />
-            <Card className="card-futuristic">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Recent Achievements
-                </CardTitle>
-                <CardDescription>Your latest milestones</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
-                  <Badge variant="secondary" className="bg-success text-success-foreground">
-                    New!
-                  </Badge>
-                  <div>
-                    <p className="font-medium">15-Day Study Streak</p>
-                    <p className="text-sm text-muted-foreground">Completed yesterday</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                  <Badge variant="secondary" className="bg-primary text-primary-foreground">
-                    Hot!
-                  </Badge>
-                  <div>
-                    <p className="font-medium">Sleep Champion</p>
-                    <p className="text-sm text-muted-foreground">7 days of perfect sleep</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <WeeklyProgressGraph />
         </TabsContent>
 
         {/* Groups Tab */}
