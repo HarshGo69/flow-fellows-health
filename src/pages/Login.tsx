@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // 👈 Import Axios here
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const Login = () => {
     password: "",
     confirmPassword: ""
   });
+  const [error, setError] = useState(""); // 👈 State to display errors
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -19,21 +21,62 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => { // 👈 Make the handler async
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Navigate to dashboard after successful login/signup
-    navigate('/dashboard');
+    setError(""); // Clear previous errors
+
+    const backendUrl = "http://localhost:5000/api";
+
+    try {
+      if (isSignup) {
+        // --- SIGNUP LOGIC ---
+        if (formData.password !== formData.confirmPassword) {
+          setError("Passwords do not match.");
+          return;
+        }
+
+        await axios.post(`${backendUrl}/signup`, {
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password
+        });
+
+        alert("Account created successfully! You can now log in.");
+        setIsSignup(false);
+        setFormData({ fullName: "", email: "", password: "", confirmPassword: "" });
+
+      } else {
+        // --- LOGIN LOGIC ---
+        const response = await axios.post(`${backendUrl}/login`, {
+          email: formData.email,
+          password: formData.password
+        });
+
+        // 📍 Store token in localStorage
+        localStorage.setItem("token", response.data.token);
+
+        console.log("Login successful:", response.data);
+
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || 'An error occurred.');
+      } else {
+        setError('Network Error: Could not connect to the backend.');
+      }
+      console.error("Submission Error:", err);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#191C21] flex">
       {/* Left Side - Branding */}
       <div className="w-1/2 bg-black text-white px-10 flex flex-col justify-center">
-        <div className="text-center">
-          <h1 className="font-semibold text-[120px] mb-[-40px] leading-none">Well</h1>
-          <h1 className="font-black text-[270px] leading-none">Track.</h1>
-          <p className="text-lg text-gray-300 w-[70%] mx-auto mt-[20%]">
+        <div>
+          <p className=" text-[100px] mb-[-40px] leading-15 ">Well</p>
+          <h1 className="font-black text-[220px] leading-none">Track.</h1>
+          <p className="text-lg text-gray-300 w-[70%] mx-auto mt-[10%]">
             A futuristic wellness tracking platform for students. Track your habits, 
             stay motivated, and achieve your health goals with your peers.
           </p>
@@ -41,8 +84,8 @@ const Login = () => {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-1/2 bg-[#191C21] flex items-center justify-center">
-        <div className="p-10 rounded-2xl w-[400px] shadow-lg border border-white/20 flex flex-col items-center bg-gray-900">
+      <div className="w-1/2 bg-black flex items-center justify-center">
+        <div className="p-10 rounded-2xl w-[400px] shadow-lg border border-white/30 flex flex-col items-center bg-black">
           {/* Logo */}
           <div className="mb-6">
             <img
@@ -56,7 +99,11 @@ const Login = () => {
           <div className="flex w-full mb-6">
             <button
               type="button"
-              onClick={() => setIsSignup(false)}
+              onClick={() => {
+                setIsSignup(false);
+                setError("");
+                setFormData({ fullName: "", email: "", password: "", confirmPassword: "" });
+              }}
               className={`flex-1 py-3 rounded-l-lg transition-colors ${
                 !isSignup
                   ? "bg-white text-black font-semibold"
@@ -67,7 +114,11 @@ const Login = () => {
             </button>
             <button
               type="button"
-              onClick={() => setIsSignup(true)}
+              onClick={() => {
+                setIsSignup(true);
+                setError("");
+                setFormData({ fullName: "", email: "", password: "", confirmPassword: "" });
+              }}
               className={`flex-1 py-3 rounded-r-lg transition-colors ${
                 isSignup
                   ? "bg-white text-black font-semibold"
@@ -77,6 +128,9 @@ const Login = () => {
               Sign Up
             </button>
           </div>
+
+          {/* Display error message */}
+          {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col space-y-4 w-full">

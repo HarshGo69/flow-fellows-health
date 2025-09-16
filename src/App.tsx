@@ -2,14 +2,23 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import LandingPage from "./components/LandingPage";
-import Login from "./pages/Login";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+// Pages
+import LandingPage from "./components/LandingPage"; // Adjust path if needed
+import Login from "./pages/Login"; // Adjust path if needed
+import NotFound from "./pages/NotFound"; // Adjust path if needed
+import Index from "./pages/Index"; // Dashboard / main content
 
 const queryClient = new QueryClient();
+
+// Helper to check if user is authenticated
+const isAuthenticated = () => localStorage.getItem("token") !== null;
+
+// Protected Route Component
+const ProtectedRoute = ({ element }: { element: React.ReactElement }) => {
+  return isAuthenticated() ? element : <Navigate to="/login" replace />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -18,10 +27,19 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/Login" element={<Login />} />
-          <Route path="/dashboard" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* Login route: redirect to dashboard if already logged in */}
+          <Route
+            path="/login"
+            element={isAuthenticated() ? <Navigate to="/dashboard" replace /> : <Login />}
+          />
+
+          {/* Protected dashboard */}
+          <Route path="/dashboard" element={<ProtectedRoute element={<Index />} />} />
+
+          {/* Catch-all 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
@@ -30,3 +48,4 @@ const App = () => (
 );
 
 export default App;
+  

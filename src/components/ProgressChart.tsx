@@ -1,22 +1,134 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Calendar } from "lucide-react";
+import { TrendingUp, Calendar, Plus, Minus } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
 
 const ProgressChart = () => {
-  // Mock data for the last 7 days
-  const weekData = [
-    { day: "Mon", sleep: 8, exercise: 60, water: 8, study: 4 },
-    { day: "Tue", sleep: 7.5, exercise: 45, water: 7, study: 3.5 },
-    { day: "Wed", sleep: 8, exercise: 60, water: 8, study: 4 },
-    { day: "Thu", sleep: 7, exercise: 30, water: 6, study: 3 },
-    { day: "Fri", sleep: 8.5, exercise: 75, water: 9, study: 4.5 },
-    { day: "Sat", sleep: 9, exercise: 90, water: 8, study: 2 },
-    { day: "Sun", sleep: 8, exercise: 60, water: 7, study: 3.5 },
-  ];
+  const [progressData, setProgressData] = useState({
+    sleep: 0,
+    exercise: 0,
+    water: 0,
+    study: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const getBarHeight = (value: number, max: number) => {
-    return Math.max((value / max) * 100, 5); // Minimum 5% height for visibility
+  // State for the form inputs
+  const [formData, setFormData] = useState({
+    sleep: 0,
+    exercise: 0,
+    water: 0,
+    study: 0,
+  });
+
+  const fetchProgressData = async () => {
+    setLoading(true);
+    const token = getAuthToken();
+    if (!token) {
+      setError("Please log in to view your progress.");
+      setLoading(false);
+      return;
+    }
+    try {
+      const response = await axios.get("http://localhost:5000/api/progress", {
+        headers: { "x-auth-token": token },
+      });
+      // Correctly set state with the 'habits' object from the response
+      setProgressData(response.data.habits); 
+      setFormData(response.data.habits); // Also populate the form with current data
+    } catch (err) {
+      setError("Failed to fetch progress data.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: parseFloat(value),
+    }));
+  };
+
+  const handleUpdateProgress = async (e) => {
+    e.preventDefault();
+    const token = getAuthToken();
+    if (!token) {
+      setError("Not authenticated.");
+      return;
+    }
+    try {
+      const response = await axios.post("http://localhost:5000/api/progress/set", formData, {
+        headers: { "x-auth-token": token },
+      });
+      // Update state with the new data from the server
+      setProgressData(response.data.habits); 
+      alert("Progress updated successfully!");
+    } catch (err) {
+      setError("Failed to update progress.");
+      console.error(err);
+    }
+  };
+
+  const handleIncrement = async (habit, value = 1) => {
+    const token = getAuthToken();
+    if (!token) {
+      setError("Not authenticated.");
+      return;
+    }
+    try {
+      const response = await axios.post("http://localhost:5000/api/progress", 
+        { habit, action: 'increment', value },
+        { headers: { "x-auth-token": token } }
+      );
+      setProgressData(response.data.habits);
+      setFormData(response.data.habits);
+    } catch (err) {
+      setError("Failed to update progress.");
+      console.error(err);
+    }
+  };
+
+  const handleDecrement = async (habit, value = 1) => {
+    const token = getAuthToken();
+    if (!token) {
+      setError("Not authenticated.");
+      return;
+    }
+    try {
+      const response = await axios.post("http://localhost:5000/api/progress", 
+        { habit, action: 'decrement', value },
+        { headers: { "x-auth-token": token } }
+      );
+      setProgressData(response.data.habits);
+      setFormData(response.data.habits);
+    } catch (err) {
+      setError("Failed to update progress.");
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProgressData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading progress data...</div>;
+  }
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
+  const getBarHeight = (value, max) => Math.max((value / max) * 100, 5);
 
   const habits = [
     { key: 'sleep', label: 'Sleep (hrs)', color: 'bg-accent', max: 10 },
@@ -34,57 +146,70 @@ const ProgressChart = () => {
         </CardTitle>
         <CardDescription className="flex items-center gap-2">
           <Calendar className="w-4 h-4" />
-          Last 7 days performance
+          Today's Performance
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Chart */}
         <div className="space-y-4">
-          {habits.map((habit) => (
-            <div key={habit.key} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{habit.label}</span>
-                <Badge variant="outline" className="text-xs">
-                  Avg: {(weekData.reduce((sum, day) => sum + (day[habit.key as keyof typeof day] as number), 0) / 7).toFixed(1)}
-                </Badge>
+          <div className="flex items-end gap-2 h-20">
+            {habits.map((habit) => (
+              <div key={habit.key} className="flex-1 flex flex-col items-center gap-1">
+                <div className="w-full bg-muted rounded-md overflow-hidden relative h-16">
+                  <div
+                    className={`${habit.color} rounded-md transition-all duration-500 ease-out absolute bottom-0 w-full`}
+                    style={{ height: `${getBarHeight(progressData[habit.key], habit.max)}%` }}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground">{habit.label.split(' ')[0]}</span>
+                <div className="flex items-center gap-1 mt-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 w-6 p-0 bg-transparent border-gray-600 hover:bg-gray-700"
+                    onClick={() => handleDecrement(habit.key, 1)}
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="text-xs font-medium min-w-[2rem] text-center">
+                    {progressData[habit.key]}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 w-6 p-0 bg-transparent border-gray-600 hover:bg-gray-700"
+                    onClick={() => handleIncrement(habit.key, 1)}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-end gap-2 h-20">
-                {weekData.map((day, index) => (
-                  <div key={index} className="flex-1 flex flex-col items-center gap-1">
-                    <div className="w-full bg-muted rounded-md overflow-hidden relative h-16">
-                      <div
-                        className={`${habit.color} rounded-md transition-all duration-500 ease-out absolute bottom-0 w-full`}
-                        style={{
-                          height: `${getBarHeight(day[habit.key as keyof typeof day] as number, habit.max)}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs text-muted-foreground">{day.day}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Insights */}
-        <div className="space-y-3">
-          <h4 className="font-medium">This Week's Insights</h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-success/10 border border-success/20">
-              <div className="w-2 h-2 rounded-full bg-success animate-glow-pulse" />
-              <span>Great job on weekend exercise! 90 minutes on Saturday 🔥</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
-              <div className="w-2 h-2 rounded-full bg-primary animate-glow-pulse" />
-              <span>Sleep consistency improved by 15% this week</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-warning/10 border border-warning/20">
-              <div className="w-2 h-2 rounded-full bg-warning animate-glow-pulse" />
-              <span>Consider increasing water intake on weekdays</span>
-            </div>
+            ))}
           </div>
         </div>
+        <form onSubmit={handleUpdateProgress} className="space-y-4">
+          <h4 className="font-medium">Update Today's Progress</h4>
+          <div className="grid grid-cols-2 gap-4">
+            {habits.map((habit) => (
+              <div key={habit.key} className="space-y-1">
+                <label className="text-sm font-medium">{habit.label}</label>
+                <Input
+                  type="number"
+                  name={habit.key}
+                  value={formData[habit.key]}
+                  onChange={handleFormChange}
+                  min="0"
+                  max={habit.max}
+                  step="0.1"
+                  className="bg-transparent text-white border border-gray-600 focus:border-white"
+                />
+              </div>
+            ))}
+          </div>
+          <Button type="submit" className="w-full bg-white text-black font-semibold hover:bg-gray-200">
+            Save Progress
+          </Button>
+        </form>
       </CardContent>
     </Card>
   );
